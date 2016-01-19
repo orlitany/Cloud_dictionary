@@ -72,6 +72,6 @@ disp(['Noisy Shape MSE: ',num2str(MSE_noisy),...
 figure;subplot(1,3,1);showshape(noisy_shape);title('Noisy shape')
 subplot(1,3,2);showshape(meshlab_denoised_shape);title('Meshlab laplacian denoise')
 subplot(1,3,3);showshape(recon_shape);title('Our method')
-
+showshape(gt_shape);title('Original shape')
 
 
