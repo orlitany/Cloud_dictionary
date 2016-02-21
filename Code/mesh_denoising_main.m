@@ -22,9 +22,9 @@ Nv = numel(noisy_shape.X);
 MSE_noisy = calc_MSE(gt_shape,noisy_shape);
 
 lambda_l1=0;
-save(['./../results/lambda0'],'noisy_shape','MSE_noisy','lambda_l1');
+% save(['./../results/lambda0'],'noisy_shape','MSE_noisy','lambda_l1');
 
-saveoff_color(['./../results/noisy_shape.off'],[noisy_shape.X noisy_shape.Y noisy_shape.Z],noisy_shape.TRIV);
+% saveoff_color(['./../results/noisy_shape.off'],[noisy_shape.X noisy_shape.Y noisy_shape.Z],noisy_shape.TRIV);
 
 %% Denoise using meshlab, method: HC laplacian
 
@@ -49,16 +49,30 @@ MSE_meshlab = calc_MSE(gt_shape,meshlab_denoised_shape);
 %% Denoise using our method: 
 
 %parameters:
-my_params.num_of_frequencies = 20;
+my_params.num_of_atoms = 20; %if ksvd then this is num of frequencies
 my_params.k_neighbors = 1024;
-my_params.knn_radius = 10;
+my_params.knn_radius = 5;
 my_params.num_of_patches = 10000;
 my_params.sigma = 0;%noise_level;
 my_params.L = 1;%
+my_params.dict_type = 'cos'; %other type: 'cos'
+my_params.patch_collecting_rounds = 2;
+
 i=1;
 
-%run
-recon_shape = my_pcl_denoise(gt_shape,my_params);
+%% run
+recon_shape = my_pcl_denoise_geodesic(noisy_shape,my_params);
+
+
+%%
+pc_gt = pointCloud([gt_shape.X gt_shape.Y gt_shape.Z]);
+pc_noisy = pointCloud([noisy_shape.X noisy_shape.Y noisy_shape.Z]);pc_noisy.Color = uint8(repmat([255 0 0],Nv,1));
+pc_recon = pointCloud([recon_shape.X recon_shape.Y recon_shape.Z]);pc_recon.Color = uint8(repmat([255 0 0],Nv,1));
+pc_meshlab = pointCloud([meshlab_denoised_shape.X meshlab_denoised_shape.Y meshlab_denoised_shape.Z]);pc_meshlab.Color = uint8(repmat([255 0 0],Nv,1));
+showshape(gt_shape);hold all;pcshow(pc_noisy);
+showshape(gt_shape);hold all;pcshow(pc_meshlab);
+showshape(gt_shape);hold all;pcshow(pc_recon);
+
 
 recon_shape.TRIV = gt_shape.TRIV;
 %     showshape(recon_shape);
