@@ -1,7 +1,5 @@
 % train dictionary test file
 %% add dependencies
-addpath(genpath('./Utils/'));
-addpath(genpath('./spams-matlab-v2.5-svn2014-07-04/'));
 addpath(genpath('C:\Code\3D_shapes_tools\'));
 addpath(genpath('./../'));
 
@@ -19,8 +17,8 @@ wx = wx(:)'; wy = wy(:)';
 Dcont = @(xy)continousDictionary((xy+geodesic_radius),wx,wy);
 
 %% choose shape
-shape = loadoff('./../Data/null.off');
-
+shape = loadoff('./../Data/centaur1_dense.off');
+showshape(shape)
 %% Prepare patches
 
 fprintf('Collecting patches...');
@@ -60,8 +58,40 @@ for ii = 1:num_of_patches
 end
 
 %% Train the dictionary
-[Dtrained,err_per_iter] = trainDictionary( train_iterations,Dcont,patches_XY,patches_val,num_atoms,L );
-figure;plot(err_per_iter)
-save('./../Results/my_trained_dictionary','Dtrained');
+load('./../Results/my_trained_dictionary');
+
+[Dtrained,err_per_iter] = trainDictionary( train_iterations,Dcont,patches_XY,patches_val,num_atoms,L,Dtrained);
+figure;plot(err_per_iter);title('K-SVD Error per iteration');xlabel('#iter'); 
+save('./../Results/my_trained_dictionary','Dtrained','err_per_iter');
+
+%%
+[xx,yy] = meshgrid(-geodesic_radius:geodesic_radius/50:geodesic_radius); 
+xy = [xx(:) yy(:)];
+ddd = Dcont(xy);
+ind = find(xx.^2+yy.^2 > 25);
+ddd(ind,:) = nan;
+
+% ddd = bsxfun(@rdivide,ddd,sqrt(sum(ddd.^2,1)));
+% for i=1:100, figure(1);imagesc(reshape(ddd(:,i),[101 101]));pause(1);end
+% imagesc(Dtrained)
+
+
+Abefore = col2im(ddd,[101 101],101*K*[1 1],'distinct');
+%---------------------------------------------------------
+[xx,yy] = meshgrid(-geodesic_radius:geodesic_radius/50:geodesic_radius); 
+xy = [xx(:) yy(:)];
+ddd = Dcont(xy)*Dtrained;
+ind = find(xx.^2+yy.^2 > 25);
+ddd(ind,:) = nan;
+
+Aafter = col2im(ddd,[101 101],101*K*[1 1],'distinct');
+%---------------------------------------------------------
+figure;
+subplot(1,2,1); imagesc([Abefore],[-1 1]);axis image;
+subplot(1,2,2); imagesc([ Aafter],[-1 1]);axis image;
+
+%%
+
+
 
 

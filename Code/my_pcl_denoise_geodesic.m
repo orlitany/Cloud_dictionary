@@ -1,53 +1,58 @@
-function [ recon_shape ] = my_pcl_denoise_geodesic(noisy_shape,params)
+function [ recon_shape ] = my_pcl_denoise_geodesic(noisy_shape,patch_points_ind,patch_points_dist,params)
+
+% 
+% %- for every point - (a) find neighboring points 
+% fprintf('Collecting patches...');
+% ii=0;
+% f = fastmarchmex('init', int32(noisy_shape.TRIV-1), double(noisy_shape.X(:)), double(noisy_shape.Y(:)), double(noisy_shape.Z(:)));
+% for outer_loop = 1:params.patch_collecting_rounds
+%     set_of_unused_points = randperm(numel(noisy_shape.X));
+%     pt = [];
+%     all_distances = Inf(numel(noisy_shape.X),1);
+%     
+%     while ~isempty(set_of_unused_points)
+%         ii = ii+1;
+%          %pt = [pt;set_of_unused_points(1)];  
+%          if mod(ii,50)==0, 
+%              disp(num2str(ii)), 
+% %              clr = ones(size(noisy_shape.X,1),1);
+% %              clr(set_of_unused_points)=0;
+% %              showshape(noisy_shape,clr);
+%          end;
+% 
+%         [~,fp] = max(all_distances(set_of_unused_points));
+%         pt = [pt;set_of_unused_points(fp)];
+% 
+%         [patch_points_ind{ii},patch_points_dist{ii},distances] = extractPointsInsideBall(noisy_shape,pt(end),params.knn_radius,f);
+%         all_distances = min(all_distances,distances);
+% 
+%         set_of_unused_points = setdiff(set_of_unused_points,patch_points_ind{ii},'stable');
+%     end
+% end
+% 
+% fastmarchmex('deinit', f);
+% num_of_patches = ii;clear ii;
+% fprintf('Done.\n');
+% 
 
 
-%- for every point - (a) find neighboring points 
-fprintf('Collecting patches...');
-ii=0;
-f = fastmarchmex('init', int32(noisy_shape.TRIV-1), double(noisy_shape.X(:)), double(noisy_shape.Y(:)), double(noisy_shape.Z(:)));
-for outer_loop = 1:params.patch_collecting_rounds
-    set_of_unused_points = randperm(numel(noisy_shape.X));
-    pt = [];
-    all_distances = Inf(numel(noisy_shape.X),1);
-    
-    while ~isempty(set_of_unused_points)
-        ii = ii+1;
-         %pt = [pt;set_of_unused_points(1)];  
-        [~,fp] = max(all_distances(set_of_unused_points));
-        pt = [pt;set_of_unused_points(fp)];
-
-        [patch_points_ind{ii},patch_points_dist{ii},distances] = extractPointsInsideBall(noisy_shape,pt(end),params.knn_radius,f);
-        all_distances = min(all_distances,distances);
-
-        set_of_unused_points = setdiff(set_of_unused_points,patch_points_ind{ii},'stable');
-    
-    end
-end
-
-fastmarchmex('deinit', f);
-num_of_patches = ii;clear ii;
-fprintf('Done.\n');
-
-
-
-
+num_of_patches = numel(patch_points_ind);
 % load dictionary
-D = load();
+D = params.dict;
 
 
 %%
 
-if strcmp(params.dict_type , 'ksvd'),     
-    Dtrained = @(xy)Dcont(xy)*ksvdDictionary;    
-end
+% if strcmp(params.dict_type , 'ksvd'),     
+%     Dtrained = @(xy)Dcont(xy)*ksvdDictionary;    
+% end
 
 
 %- denoise
 for ii=1:min(num_of_patches,params.num_of_patches)
     if mod(ii,10)==0, disp(num2str(ii)), end;
     XYZ = [noisy_shape.X(patch_points_ind{ii}) noisy_shape.Y(patch_points_ind{ii}) noisy_shape.Z(patch_points_ind{ii}) ];
-    patch_points_recon_XYZ{ii} = patchDenoise(D,params.sigma,params.L,XYZ);  
-    
+    patch_points_recon_XYZ{ii} = patchDenoise(D,params.sigma,params.L,XYZ);      
 end
 
 if params.num_of_patches < num_of_patches,

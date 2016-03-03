@@ -23,6 +23,7 @@ end
 val = score(:,3);
 pts = score(:,1:2);
 D = dict(pts);
+D = bsxfun(@rdivide,D,sqrt(sum(D.^2,1)));
 
 param.eps = 1.1*N*sigma^2;
 param.L = L;

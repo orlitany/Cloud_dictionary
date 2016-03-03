@@ -1,4 +1,4 @@
-function [ Dtrained,tot_err_per_iter ] = trainDictionary( num_iterations,Dcont,patches_XY,patches_val,num_atoms,L )
+function [ Dtrained,tot_err_per_iter ] = trainDictionary( num_iterations,Dcont,patches_XY,patches_val,num_atoms,L,Dinit )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -9,7 +9,12 @@ num_patches = numel(patches_XY);
 param.eps = 0;
 param.L = L;
 
-Dtrained = [eye(num_atoms);zeros(num_freq-num_atoms,num_atoms)]; %Init
+
+if isempty(Dinit),
+    Dtrained = [eye(num_atoms);zeros(num_freq-num_atoms,num_atoms)]; %Init
+else
+    Dtrained = Dinit;
+end
 %Dtrained = rand(num_freq,num_atoms);
 
 Z = zeros(num_atoms,num_patches);
